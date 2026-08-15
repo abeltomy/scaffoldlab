@@ -11,6 +11,10 @@ import { RightSidebar } from './ui/RightSidebar';
 import { BottomBar } from './ui/BottomBar';
 import { useAppStore } from './store/useAppStore';
 
+/** Matches Tailwind's `lg` breakpoint, where the sidebars stop being overlays. */
+const DESKTOP_QUERY = '(min-width: 1024px)';
+const isDesktopWidth = () => window.matchMedia(DESKTOP_QUERY).matches;
+
 export default function App() {
   const loadDemo = useAppStore((s) => s.loadDemo);
   const loadFile = useAppStore((s) => s.loadFile);
@@ -19,14 +23,33 @@ export default function App() {
   const dismissError = useAppStore((s) => s.dismissError);
   const object = useAppStore((s) => s.object);
 
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  // Below `lg` the sidebars are overlays that cover the viewport, so they start
+  // closed there and the 3D view gets the whole screen; on desktop they sit
+  // beside it and start open.
+  const [leftOpen, setLeftOpen] = useState(isDesktopWidth);
+  const [rightOpen, setRightOpen] = useState(isDesktopWidth);
   const [dragging, setDragging] = useState(false);
 
   // Demo building loads automatically so the app is useful on first paint.
   useEffect(() => {
     void loadDemo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Follow the breakpoint when the window is resized or the device rotated.
+  // A `resize` listener rather than matchMedia's `change`: the latter does not
+  // fire under emulated viewport changes (device toolbars, responsive preview).
+  useEffect(() => {
+    let wasDesktop = isDesktopWidth();
+    const onResize = () => {
+      const desktop = isDesktopWidth();
+      if (desktop === wasDesktop) return;
+      wasDesktop = desktop;
+      setLeftOpen(desktop);
+      setRightOpen(desktop);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   return (
