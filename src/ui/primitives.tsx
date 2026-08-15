@@ -2,11 +2,15 @@
 
 import { useState, type ReactNode } from 'react';
 
+/**
+ * Collapsible panel. Closed by default: the sidebars carry a lot of controls
+ * and opening everything at once buries the 3D view in dials.
+ */
 export function Section({
   title,
   children,
   right,
-  defaultOpen = true,
+  defaultOpen = false,
   dense = false,
 }: {
   title: string;

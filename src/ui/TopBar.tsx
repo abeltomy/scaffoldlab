@@ -30,7 +30,7 @@ export function TopBar() {
   const status = useAppStore((s) => s.status);
   const scaffold = useAppStore((s) => s.scaffold);
   const fileInput = useRef<HTMLInputElement>(null);
-  const [menu, setMenu] = useState<'export' | 'project' | 'import' | 'samples' | null>(null);
+  const [menu, setMenu] = useState<'export' | 'project' | 'samples' | null>(null);
   const busy = status === 'loading' || status === 'analysing' || status === 'generating';
 
   return (
@@ -70,24 +70,6 @@ export function TopBar() {
       <button type="button" className="btn" onClick={() => fileInput.current?.click()}>
         Import model
       </button>
-      <Menu
-        label="Public source"
-        open={menu === 'import'}
-        onToggle={() => setMenu(menu === 'import' ? null : 'import')}
-      >
-        <div className="w-72 p-3 text-[11px] text-ink-300">
-          <div className="panel-label mb-1.5">Import from public source</div>
-          <p className="mb-2 leading-relaxed">
-            Planned providers: open GLB/GLTF repositories, OpenStreetMap-derived building
-            geometry, and open GIS/city datasets — each behind an official API or a publicly
-            permitted download.
-          </p>
-          <p className="text-ink-400">
-            The provider interface is already isolated in the model-loading layer; v1 ships with
-            local file import only.
-          </p>
-        </div>
-      </Menu>
       <SampleMenu
         open={menu === 'samples'}
         onToggle={() => setMenu(menu === 'samples' ? null : 'samples')}

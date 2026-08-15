@@ -42,7 +42,7 @@ function BuildingPanel() {
   const notices = useAppStore((s) => s.notices);
 
   return (
-    <Section title="Building">
+    <Section title="Building" defaultOpen>
       {!building && <p className="text-[11px] text-ink-400">No model loaded.</p>}
       {building && analysis && (
         <>

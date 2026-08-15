@@ -21,7 +21,7 @@ npm install
 npm run dev
 ```
 
-The demo tower loads automatically and is scaffolded on first paint. Everything runs in the
+The terrace-houses sample loads automatically and is scaffolded on first paint. Everything runs in the
 browser — there is no backend.
 
 ## What it does
@@ -139,8 +139,8 @@ react-three-fiber state — useful for driving the pipeline from the console.
 - Interior courtyards are ignored — only the outer silhouette is scaffolded.
 - Interactive editing covers selecting, deleting a member and disabling a whole lift; free-form
   component authoring is not implemented.
-- "Import from public source" is a placeholder: the provider seam exists in the model-loading layer,
-  but v1 ships local file import only.
+- No public-model provider yet. The model-loading layer is provider-shaped, so an OpenStreetMap
+  (Overpass) or 3D-repository importer can slot in, but v1 is local file import only.
 - GIS/city mode (multiple buildings, terrain, coordinates) is designed for but not implemented.
 
 ## License

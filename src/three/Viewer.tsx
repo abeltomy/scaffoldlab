@@ -10,9 +10,7 @@ import {
   GizmoViewcube,
   Grid,
   Html,
-  Line,
   OrbitControls,
-  OrthographicCamera,
   PerspectiveCamera,
 } from '@react-three/drei';
 import * as THREE from 'three';
@@ -27,7 +25,6 @@ export function getViewportCanvas(): HTMLCanvasElement | null {
 }
 
 export function Viewer() {
-  const orthographic = useAppStore((s) => s.orthographic);
   const showGrid = useAppStore((s) => s.showGrid);
   const analysis = useAppStore((s) => s.analysis);
   const tool = useAppStore((s) => s.tool);
@@ -65,7 +62,7 @@ export function Viewer() {
     >
       <RaycastRange />
       <SceneFog size={size} />
-      <CameraRig size={size} orthographic={orthographic} />
+      <CameraRig size={size} />
       {/* Sky/ground bounce, warm key from the front-right, cool fill from behind
           and a low rim so tubes read against a dark building. */}
       <hemisphereLight args={['#ffffff', '#b9c2ce', 1.15]} />
@@ -111,6 +108,33 @@ export function Viewer() {
       </GizmoHelper>
       <AxisIndicator size={size} />
     </Canvas>
+  );
+}
+
+
+/**
+ * Plain THREE.Line segment.
+ *
+ * drei's <Line> pulls in a screen-space-width shader (Line2) that these
+ * overlays do not need — they are hairlines either way — so this avoids the
+ * extra material and its projection-dependent maths.
+ */
+function Segment({
+  from,
+  to,
+  color,
+}: {
+  from: THREE.Vector3;
+  to: THREE.Vector3;
+  color: string;
+}) {
+  const geometry = useMemo(
+    () => new THREE.BufferGeometry().setFromPoints([from, to]),
+    [from, to],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <primitive object={new THREE.Line(geometry, new THREE.LineBasicMaterial({ color }))} />
   );
 }
 
@@ -195,7 +219,7 @@ function ClipPlaneVisual({ planes, size }: { planes: THREE.Plane[]; size: number
   );
 }
 
-function CameraRig({ size, orthographic }: { size: number; orthographic: boolean }) {
+function CameraRig({ size }: { size: number }) {
   const controls = useRef<React.ComponentRef<typeof OrbitControls>>(null);
   const command = useAppStore((s) => s.cameraCommand);
   const { camera } = useThree();
@@ -245,16 +269,7 @@ function CameraRig({ size, orthographic }: { size: number; orthographic: boolean
     <>
       {/* No `position` prop: the rig owns the camera transform, otherwise R3F
           would re-apply the home position on every re-render. */}
-      {orthographic ? (
-        <OrthographicCamera
-          makeDefault
-          zoom={Math.max(0.6, 420 / size)}
-          near={-size * 20}
-          far={size * 40}
-        />
-      ) : (
-        <PerspectiveCamera makeDefault fov={45} near={size / 400} far={size * 60} />
-      )}
+      <PerspectiveCamera makeDefault fov={45} near={size / 400} far={size * 60} />
       <OrbitControls
         ref={controls}
         makeDefault
@@ -291,7 +306,7 @@ function MeasurementOverlay() {
         const dh = Math.hypot(a.x - b.x, a.z - b.z);
         return (
           <group key={m.id}>
-            <Line points={[a, b]} color="#a45c06" lineWidth={2} depthTest={false} />
+            <Segment from={a} to={b} color="#a45c06" />
             <mesh position={a}>
               <sphereGeometry args={[size * 0.005, 10, 10]} />
               <meshBasicMaterial color="#a45c06" />
@@ -329,7 +344,7 @@ function AxisIndicator({ size }: { size: number }) {
         const end = new THREE.Vector3(...a.dir).multiplyScalar(len);
         return (
           <group key={a.label}>
-            <Line points={[new THREE.Vector3(0, 0, 0), end]} color={a.color} lineWidth={1.6} />
+            <Segment from={new THREE.Vector3(0, 0, 0)} to={end} color={a.color} />
             <Html position={end} center distanceFactor={size * 1.6}>
               <span className="font-mono text-[11px] font-bold" style={{ color: a.color }}>
                 {a.label}

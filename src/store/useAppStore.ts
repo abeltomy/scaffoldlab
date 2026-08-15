@@ -104,7 +104,6 @@ interface AppState {
   showGrid: boolean;
   buildingOpacity: number;
   scaffoldOpacity: number;
-  orthographic: boolean;
   /**
    * Display-only thickness multiplier for scaffold members. A 48 mm tube on a
    * 380 m tower is sub-pixel, so members are drawn exaggerated by default.
@@ -270,7 +269,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   showGrid: true,
   buildingOpacity: 1,
   scaffoldOpacity: 1,
-  orthographic: false,
   memberDisplayScale: 0,
   colorMode: 'normal',
   visibleTypes: {
@@ -296,7 +294,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   /* ------------------------------------------------------------------ */
 
   loadDemo() {
-    return get().loadSample('setback');
+    // The terrace is the sample where a bay, a deck and a guard rail are
+    // legible at true member size — a better first impression than the tower.
+    return get().loadSample('terrace');
   },
 
   async loadSample(id: string) {

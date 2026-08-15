@@ -1,4 +1,4 @@
-/** Bottom bar: camera, visibility, colour mode, section tool, measurement. */
+/** Bottom bar: camera, visibility, colour mode, member filters, tools. */
 
 import {
   selectMemberScale,
@@ -55,13 +55,6 @@ export function BottomBar() {
             {label}
           </button>
         ))}
-        <button
-          type="button"
-          className={chip(s.orthographic)}
-          onClick={() => s.setView({ orthographic: !s.orthographic })}
-        >
-          {s.orthographic ? 'Orthographic' : 'Perspective'}
-        </button>
       </Group>
 
       <Group label="Show">
@@ -185,42 +178,6 @@ export function BottomBar() {
             {s.pendingPoint ? 'click second point' : 'click first point'}
           </span>
         )}
-      </Group>
-
-      <Group label="Section">
-        <button
-          type="button"
-          className={chip(s.clipEnabled)}
-          onClick={() => s.setView({ clipEnabled: !s.clipEnabled })}
-        >
-          {s.clipEnabled ? 'on' : 'off'}
-        </button>
-        {(['x', 'y', 'z'] as const).map((a) => (
-          <button
-            key={a}
-            type="button"
-            className={chip(s.clipAxis === a)}
-            onClick={() => s.setView({ clipAxis: a, clipEnabled: true })}
-          >
-            {a.toUpperCase()}
-          </button>
-        ))}
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.005}
-          value={s.clipPosition}
-          className="w-28"
-          onChange={(e) => s.setView({ clipPosition: parseFloat(e.target.value) })}
-        />
-        <button
-          type="button"
-          className={chip(s.clipFlip)}
-          onClick={() => s.setView({ clipFlip: !s.clipFlip })}
-        >
-          flip
-        </button>
       </Group>
     </div>
   );
