@@ -9,6 +9,8 @@ quantity and weight take-off.
 > only. They are not a substitute for structural engineering, site assessment, manufacturer
 > requirements, local regulations, or a certified scaffolding design.
 
+**Live demo:** https://abeltomy.github.io/scaffoldlab/
+
 ## Quick start
 
 ```bash
@@ -28,7 +30,7 @@ browser — there is no backend.
 read quantities → export.
 
 - **Sample buildings** — six procedural models, each exercising a different case of the generator:
-  terrace houses (12 m — the clearest view of an individual bay), an L-shaped block (re-entrant
+  terrace houses (16 m — the clearest view of an individual bay), an L-shaped block (re-entrant
   corner), a warehouse shed, a round tower (curved façade approximated by straight bays), a
   cruciform tower (many corners per ring) and the 381 m setback high-rise.
 - **Import** — GLB, GLTF, OBJ, STL, FBX (drag-and-drop or file picker). Loaders are code-split and
@@ -115,15 +117,15 @@ src/
 
 ### Performance
 
-- One `InstancedMesh` per component type: a 90 000-member scaffold is ~6 draw calls.
+- One `InstancedMesh` per component type: a 120 000-member scaffold is ~8 draw calls.
 - Analysis runs in a worker; the raster is transferred, not cloned.
 - Rescaling the model only rewrites raster metadata — no re-voxelisation.
 - The analysis triangle budget subsamples very dense meshes with a uniform stride.
 - Generation is capped at 400 000 members; beyond that the app warns and asks for coarser spacing.
 - Members become interactive only in select mode, so pointer moves do not raycast 100 000 instances.
 
-Reference numbers on the 381 m demo tower at 1.8 m bays / 2.0 m lifts: 192 lifts, ~88 500 members,
-generation ~70 ms.
+Reference numbers on the 381 m demo tower at 1.8 m bays / 2.0 m lifts: 192 lifts, ~123 000 members,
+generation ~100 ms.
 
 ### Dev handles
 
@@ -140,3 +142,7 @@ react-three-fiber state — useful for driving the pipeline from the console.
 - "Import from public source" is a placeholder: the provider seam exists in the model-loading layer,
   but v1 ships local file import only.
 - GIS/city mode (multiple buildings, terrain, coordinates) is designed for but not implemented.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
