@@ -35,15 +35,24 @@ export function TopBar() {
 
   return (
     <header className="relative z-30 flex h-12 shrink-0 items-center gap-2 border-b border-ink-800 bg-ink-900 px-3">
-      <div className="flex items-center gap-2 pr-2">
-        <div className="grid h-7 w-7 place-items-center rounded bg-accent-500 font-bold text-on-accent">
-          ⌗
-        </div>
+      {/* Relative href: the planner is served at ./app.html, so "./" is the
+          landing page in dev and on GitHub Pages alike. */}
+      <a href="./" className="flex items-center gap-2 pr-2" title="Back to the ScaffoldLab home page">
+        <svg viewBox="0 0 24 24" className="h-7 w-7 shrink-0" aria-hidden="true">
+        <path d="M7.5 21V10.5h5.5V7.5h4V21z" fill="#aeb7c3" />
+        <g stroke="#4f5b67" strokeWidth="1.6" strokeLinecap="round">
+        <path d="M4.6 21.4V9.6M12 21.4V9.6M19.4 21.4V6.4" />
+        </g>
+        <g stroke="#d4890f" strokeWidth="2.4" strokeLinecap="round">
+        <path d="M3.8 16.4h15.8" />
+        <path d="M3.8 11.4h15.8" />
+        </g>
+        </svg>
         <div className="leading-none">
           <div className="text-[13px] font-semibold tracking-tight">ScaffoldLab</div>
           <div className="text-[9.5px] text-ink-400">3D scaffolding planning &amp; estimation</div>
         </div>
-      </div>
+      </a>
 
       <div className="mx-1 h-6 w-px bg-ink-700" />
 

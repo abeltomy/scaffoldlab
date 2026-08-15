@@ -1,3 +1,4 @@
+import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -12,4 +13,15 @@ export default defineConfig(({ command }) => ({
   base: command === 'build' ? REPO_BASE : '/',
   plugins: [react(), tailwindcss()],
   worker: { format: 'es' },
+  build: {
+    // Two entries: a dependency-free landing page at / and the planner at
+    // /app.html. Keeping them separate means the landing paints without
+    // downloading the Three.js bundle.
+    rollupOptions: {
+      input: {
+        landing: resolve(__dirname, 'index.html'),
+        app: resolve(__dirname, 'app.html'),
+      },
+    },
+  },
 }))

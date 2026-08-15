@@ -2,12 +2,403 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ScaffoldLab — 3D Scaffolding Planning & Estimation</title>
+    <title>ScaffoldLab — 3D scaffolding planning &amp; estimation</title>
+    <meta
+      name="description"
+      content="Wrap a 3D building model in a modular scaffold and take off the material quantities — in the browser."
+    />
+    <meta property="og:title" content="ScaffoldLab — 3D scaffolding planning & estimation" />
+    <meta
+      property="og:description"
+      content="Load a building. Get the scaffold and the quantities."
+    />
+    <meta property="og:type" content="website" />
+    <!--
+      Deliberately dependency-free: hand-written CSS and an inline SVG, so the
+      page paints instantly instead of booting the Three.js bundle that the
+      planner itself needs. The planner lives at ./app.html.
+    -->
+    <style>
+      :root {
+        --bg: #eceff4;
+        --panel: #ffffff;
+        --line: #d6dce5;
+        --text: #16202c;
+        --muted: #4d5a6b;
+        --faint: #6b7787;
+        --accent: #e8951b;
+        --accent-ink: #a45c06;
+        --on-accent: #24170a;
+        --steel: #68747f;
+        --deck: #b07d1c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          15px/1.6 'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      header {
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+      header .wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 58px;
+      }
+      .mark {
+        width: 30px;
+        height: 30px;
+        display: block;
+        flex: none;
+      }
+      .brand {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .nav {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 13.5px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: 0.15s;
+      }
+      .btn:hover {
+        border-color: #a3aebd;
+      }
+      .btn-primary {
+        background: var(--accent);
+        border-color: #c07a12;
+        color: var(--on-accent);
+        font-weight: 650;
+      }
+      .btn-primary:hover {
+        background: #d4860f;
+      }
+      .hero {
+        text-align: center;
+        padding: 56px 0 28px;
+      }
+      h1 {
+        font-size: 40px;
+        line-height: 1.12;
+        letter-spacing: -0.025em;
+        margin: 0 0 12px;
+      }
+      .lede {
+        font-size: 17px;
+        color: var(--muted);
+        margin: 0 auto 22px;
+        max-width: 30em;
+      }
+      .art {
+        max-width: 720px;
+        margin: 40px auto 0;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 12px;
+        box-shadow: 0 12px 32px rgba(22, 32, 44, 0.07);
+      }
+      .art svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 6px;
+        background: linear-gradient(#f4f7fa, #e6eaf0);
+      }
+      .flow {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 26px 0 34px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .flow b {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .flow span {
+        color: var(--accent-ink);
+      }
+      .origin {
+        margin-top: 6px;
+        text-align: center;
+      }
+      .origin h2 {
+        font-size: 22px;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+      }
+      .origin p {
+        margin: 0 auto 22px;
+        max-width: 34em;
+        font-size: 15px;
+        color: var(--muted);
+      }
+      /* Full-bleed strip: escape the centred column without a wrapper. */
+      .strip {
+        position: relative;
+        left: 50%;
+        width: 100vw;
+        margin-left: -50vw;
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+      }
+      .track {
+        display: flex;
+        gap: 12px;
+        width: max-content;
+        /* The list is duplicated in the markup, so translating by exactly -50%
+           lands on an identical frame and the loop is seamless. */
+        animation: slide 70s linear infinite;
+      }
+      .strip:hover .track {
+        animation-play-state: paused;
+      }
+      .track img {
+        height: 240px;
+        width: auto;
+        display: block;
+        border-radius: 8px;
+        background: var(--panel);
+      }
+      @keyframes slide {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .track {
+          animation: none;
+        }
+        .strip {
+          overflow-x: auto;
+        }
+      }
+      footer {
+        margin-top: 34px;
+        border-top: 1px solid var(--line);
+        padding: 20px 0 40px;
+        font-size: 12.5px;
+        color: var(--faint);
+        text-align: center;
+      }
+      footer a {
+        color: var(--accent-ink);
+      }
+      footer p {
+        margin: 0 0 6px;
+      }
+      @media (max-width: 760px) {
+        h1 {
+          font-size: 30px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <header>
+      <div class="wrap">
+        <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7.5 21V10.5h5.5V7.5h4V21z" fill="#aeb7c3" />
+      <g stroke="#4f5b67" stroke-width="1.6" stroke-linecap="round">
+        <path d="M4.6 21.4V9.6M12 21.4V9.6M19.4 21.4V6.4" />
+      </g>
+      <g stroke="#d4890f" stroke-width="2.4" stroke-linecap="round">
+        <path d="M3.8 16.4h15.8" />
+        <path d="M3.8 11.4h15.8" />
+      </g>
+          </svg>
+        <div class="brand">ScaffoldLab</div>
+        <nav class="nav">
+          <a class="btn" href="https://github.com/abeltomy/scaffoldlab">GitHub</a>
+          <a class="btn btn-primary" href="./app.html">Open the planner</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="hero">
+        <h1>Wrap a building in scaffold.</h1>
+        <p class="lede">Load a 3D model. ScaffoldLab builds the scaffold and counts every member.</p>
+        <a class="btn btn-primary" href="./app.html">Open the planner →</a>
+      </div>
+
+      <section class="origin">
+        <h2>It started in Hong Kong.</h2>
+        <p>
+          I stood under this and wondered how many bamboo poles it takes to wrap a whole building.
+          So I built the thing that counts them.
+        </p>
+      </section>
+
+      <div class="strip">
+        <div class="track">
+            <img src="./hk/hk-01.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-02.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-03.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-04.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-05.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-06.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-07.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-08.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-09.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-10.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-11.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-01.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-02.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-03.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-04.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-05.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-06.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-07.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-08.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-09.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-10.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+            <img src="./hk/hk-11.jpg" alt="Bamboo scaffolding in Hong Kong" loading="lazy" />
+        </div>
+      </div>
+
+      <!-- Stylised section through a scaffolded building: standards, ledgers,
+           decks with toe boards, guard rails and a façade brace. -->
+      <div class="art">
+        <svg viewBox="0 0 520 400" role="img" aria-label="Scaffold wrapped around a building">
+          <defs>
+            <linearGradient id="bld" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#cbd2dc" />
+              <stop offset="1" stop-color="#aab3c0" />
+            </linearGradient>
+          </defs>
+          <!-- ground -->
+          <path d="M0 356 H520" stroke="#c2cad5" stroke-width="2" />
+          <!-- building mass with a setback -->
+          <path d="M150 356 V150 H300 V96 H392 V356 Z" fill="url(#bld)" />
+          <path d="M150 150 H300 V96" fill="none" stroke="#939daa" stroke-width="1.5" />
+          <!-- windows -->
+          <g fill="#9aa4b2" opacity=".55">
+            <rect x="172" y="176" width="22" height="30" />
+            <rect x="212" y="176" width="22" height="30" />
+            <rect x="252" y="176" width="22" height="30" />
+            <rect x="172" y="236" width="22" height="30" />
+            <rect x="212" y="236" width="22" height="30" />
+            <rect x="252" y="236" width="22" height="30" />
+            <rect x="318" y="140" width="22" height="30" />
+            <rect x="352" y="140" width="22" height="30" />
+            <rect x="318" y="200" width="22" height="30" />
+            <rect x="352" y="200" width="22" height="30" />
+          </g>
+
+          <g stroke="var(--steel)" stroke-width="2.4" stroke-linecap="round">
+            <!-- standards (verticals) -->
+            <path d="M128 356 V138" /><path d="M170 356 V138" /><path d="M212 356 V138" />
+            <path d="M254 356 V138" /><path d="M296 356 V138" />
+            <path d="M296 138 V84" /><path d="M338 356 V84" /><path d="M380 356 V84" />
+            <path d="M414 356 V84" />
+            <!-- ledgers (horizontals), one per lift -->
+            <path d="M128 300 H296" /><path d="M128 244 H296" /><path d="M128 188 H296" />
+            <path d="M128 138 H296" />
+            <path d="M296 300 H414" /><path d="M296 244 H414" /><path d="M296 188 H414" />
+            <path d="M296 138 H414" /><path d="M296 84 H414" />
+            <!-- façade brace -->
+            <path d="M128 356 L212 244" stroke-width="2" opacity=".85" />
+            <path d="M338 244 L414 138" stroke-width="2" opacity=".85" />
+          </g>
+
+          <!-- decks with toe boards -->
+          <g>
+            <g fill="#8f9aa6">
+              <rect x="126" y="296" width="172" height="5" />
+              <rect x="126" y="240" width="172" height="5" />
+              <rect x="126" y="184" width="172" height="5" />
+              <rect x="294" y="296" width="122" height="5" />
+              <rect x="294" y="240" width="122" height="5" />
+              <rect x="294" y="184" width="122" height="5" />
+              <rect x="294" y="80" width="122" height="5" />
+            </g>
+            <g fill="var(--deck)">
+              <rect x="126" y="290" width="172" height="6" />
+              <rect x="126" y="234" width="172" height="6" />
+              <rect x="126" y="178" width="172" height="6" />
+              <rect x="294" y="290" width="122" height="6" />
+              <rect x="294" y="234" width="122" height="6" />
+              <rect x="294" y="178" width="122" height="6" />
+              <rect x="294" y="74" width="122" height="6" />
+            </g>
+          </g>
+
+          <!-- guard rails: top + mid, above each deck -->
+          <g stroke="#8892a0" stroke-width="1.6" opacity=".9">
+            <path d="M126 272 H298" /><path d="M126 282 H298" />
+            <path d="M126 216 H298" /><path d="M126 226 H298" />
+            <path d="M294 272 H416" /><path d="M294 282 H416" />
+            <path d="M294 216 H416" /><path d="M294 226 H416" />
+            <path d="M294 56 H416" /><path d="M294 66 H416" />
+          </g>
+
+          <!-- callout -->
+          <g font-family="ui-monospace, monospace" font-size="11" fill="#4d5a6b">
+            <path d="M424 138 H470" stroke="#a45c06" stroke-width="1" />
+            <circle cx="424" cy="138" r="2.5" fill="#a45c06" />
+            <text x="440" y="132">lift 2.0 m</text>
+            <path d="M338 366 H380" stroke="#a45c06" stroke-width="1" />
+            <circle cx="338" cy="366" r="2.5" fill="#a45c06" />
+            <circle cx="380" cy="366" r="2.5" fill="#a45c06" />
+            <text x="330" y="382">bay 1.8 m</text>
+          </g>
+        </svg>
+      </div>
+
+      <p class="flow">
+        <b>Load</b> <span>→</span> <b>Analyse</b> <span>→</span> <b>Generate</b> <span>→</span>
+        <b>Take off</b>
+      </p>
+
+
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <p>Planning estimates only — not an engineering design.</p>
+        <p>MIT · <a href="https://github.com/abeltomy/scaffoldlab">source on GitHub</a></p>
+      </div>
+    </footer>
   </body>
 </html>
