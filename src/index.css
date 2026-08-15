@@ -1,0 +1,89 @@
+@import 'tailwindcss';
+
+/**
+ * Light engineering theme.
+ *
+ * The `ink-*` ramp is ordered by DISTANCE FROM THE PAGE, not by darkness:
+ *   950 = page background (lightest) … 100 = primary text (darkest).
+ * Keeping that ordering means every component keeps working unchanged if the
+ * palette is swapped back to a dark set — only these values move.
+ */
+@theme {
+  --color-ink-950: #eceff4; /* app background */
+  --color-ink-900: #ffffff; /* panels, bars */
+  --color-ink-850: #f5f7fa; /* raised cards */
+  --color-ink-800: #e7ecf2; /* table headers, hover */
+  --color-ink-700: #d6dce5; /* hairline borders */
+  --color-ink-600: #c3ccd8; /* control borders */
+  --color-ink-500: #a3aebd; /* hover borders */
+  --color-ink-400: #6b7787; /* muted labels */
+  --color-ink-300: #4d5a6b; /* secondary text */
+  --color-ink-200: #2e3a49; /* strong text */
+  --color-ink-100: #16202c; /* primary text */
+  /* Amber reads as a button fill at 500 and as text at 400 — the text tone is
+     darkened so it keeps contrast on white. */
+  --color-accent-500: #e8951b;
+  --color-accent-400: #a45c06;
+  --color-accent-600: #c07a12;
+  --color-signal-500: #0d7fa8;
+  /* Text that sits ON an accent fill. */
+  --color-on-accent: #24170a;
+  --font-mono: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-ink-950);
+  color: var(--color-ink-100);
+  font-family:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Thin scrollbars for the dense engineering panels */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-600);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-500);
+}
+
+input[type='range'] {
+  accent-color: var(--color-accent-500);
+}
+
+@utility panel-label {
+  @apply text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-400;
+}
+
+@utility field {
+  @apply w-full rounded-md border border-ink-600 bg-ink-900 px-2 py-1.5 text-[12px] text-ink-100 outline-none transition focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/30;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-ink-600 bg-ink-700 px-2.5 py-1.5 text-[12px] font-medium text-ink-100 transition hover:border-ink-500 hover:bg-ink-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+@utility btn-primary {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-accent-600 bg-accent-500 px-2.5 py-1.5 text-[12px] font-semibold text-on-accent transition hover:bg-accent-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
+}
